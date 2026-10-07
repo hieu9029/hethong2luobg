@@ -1,0 +1,803 @@
+{
+  "source": "Hệ thống 2 luồng - Gems Office.xlsx",
+  "modules": [
+    {
+      "code": "NT-01",
+      "group": "Nền tảng dùng chung",
+      "package": "NỀN",
+      "name": "Danh mục dữ liệu gốc và bộ mã",
+      "features": "Khai báo và cấp mã cho pháp nhân, dự án, mặt bằng, khách thuê, nhân sự, phòng ban, chức danh, loại phí, thuế suất. Quy tắc sinh mã, chống trùng, gộp bản ghi trùng, lịch sử đổi tên.",
+      "inputs": "Khai báo một lần cộng nhập từ file hiện có của Gems",
+      "outputs": "MA_PN, MA_DA, MA_MB, MA_KH, MA_NS, MA_PB, MA_CD, MA_PHI cho toàn hệ thống"
+    },
+    {
+      "code": "NT-02",
+      "group": "Nền tảng dùng chung",
+      "package": "NỀN",
+      "name": "Tài khoản, phân quyền, nhật ký truy cập",
+      "features": "Đăng nhập một lần qua Google Workspace. Vai trò: Ban lãnh đạo, Trưởng phòng, Nhân viên, Kế toán, Kỹ thuật, Khách thuê. Phân quyền tới cấp bản ghi và cấp cột. Nhật ký đăng nhập, hết phiên tự động.",
+      "inputs": "NT-01 (nhân sự, phòng ban, chức danh)",
+      "outputs": "Định danh và quyền cho mọi module"
+    },
+    {
+      "code": "NT-03",
+      "group": "Nền tảng dùng chung",
+      "package": "NỀN",
+      "name": "Giao diện kết nối và thông báo thay đổi",
+      "features": "REST API đọc và ghi cho mọi thực thể, xác thực OAuth2 hoặc khóa API, webhook có ký xác thực và hàng đợi thử lại, tài liệu API công khai cho đội của Gems. BẮT BUỘC với mọi gói.",
+      "inputs": "Mọi module",
+      "outputs": "Kênh đồng bộ giữa các gói"
+    },
+    {
+      "code": "NT-04",
+      "group": "Nền tảng dùng chung",
+      "package": "NỀN",
+      "name": "Nhật ký thay đổi và chốt kỳ",
+      "features": "Ghi ai sửa gì lúc nào, khôi phục giá trị cũ, đóng băng kỳ đã chốt, bút toán điều chỉnh có ghi vết.",
+      "inputs": "Mọi module",
+      "outputs": "Bằng chứng đối soát cho L1-09, L2-01, L1-11"
+    },
+    {
+      "code": "L1-01",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Báo cáo công việc — Phòng TCKT",
+      "features": "Chỉ số phải đo: công nợ, chi phí, dòng tiền, thuế, hợp đồng. Dùng chung khung ở Phụ lục A.",
+      "inputs": "NT-01; danh mục nghĩa vụ của phòng",
+      "outputs": "XK_KPI_TCKT cho L1-06, L1-08"
+    },
+    {
+      "code": "L1-02",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Báo cáo công việc — Phòng Kinh doanh",
+      "features": "Chỉ số: data khách hàng, khách mới, hợp đồng ký, dự án nhập. Dùng chung khung ở Phụ lục A.",
+      "inputs": "NT-01; số thật từ L2-01 (hợp đồng ký) và L2-06 (m2 nhập)",
+      "outputs": "XK_KPI_PKD cho L1-06, L1-08"
+    },
+    {
+      "code": "L1-03",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Báo cáo công việc — Ban Quản lý",
+      "features": "Chỉ số: bảo trì định kỳ, sự cố, chất lượng dịch vụ, tuân thủ quy trình. Phòng có nhiều nhân sự hiện trường nhất, bắt buộc nhập liệu được trên điện thoại. Dùng chung khung ở Phụ lục A.",
+      "inputs": "NT-01; VH-01 (lịch bảo trì), VH-02 (sự cố), L2-14 (điểm chất lượng dịch vụ)",
+      "outputs": "XK_KPI_BQL cho L1-06, L1-08"
+    },
+    {
+      "code": "L1-04",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Báo cáo công việc — Marketing",
+      "features": "Chỉ số: data, khách tiềm năng, hợp đồng và dự án nhập từ nguồn Marketing. Dùng chung khung ở Phụ lục A.",
+      "inputs": "NT-01; đối chiếu nguồn khách với L1-02",
+      "outputs": "XK_KPI_MKT cho L1-06, L1-08"
+    },
+    {
+      "code": "L1-05",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Báo cáo công việc — HCNS",
+      "features": "Chỉ số: tuyển dụng, văn hóa doanh nghiệp, sự kiện, mua sắm. Dùng chung khung ở Phụ lục A.",
+      "inputs": "NT-01",
+      "outputs": "XK_KPI_HCNS cho L1-06, L1-08"
+    },
+    {
+      "code": "L1-06",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Gộp báo cáo toàn công ty",
+      "features": "Không ai nhập tay. Tự kéo dữ liệu 5 phòng, chuẩn hóa về một khuôn, xử lý phòng nộp muộn, bảng theo kỳ và theo người, cảnh báo phòng chưa nộp.",
+      "inputs": "L1-01 đến L1-05",
+      "outputs": "Bảng công việc toàn công ty theo kỳ cho L1-08, L2-15"
+    },
+    {
+      "code": "L1-07",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Thang bảng lương",
+      "features": "Ngạch, bậc, dải lương theo chức danh và theo pháp nhân. Hiệu lực theo ngày, lịch sử điều chỉnh, mô phỏng tác động khi đổi thang. Quyền xem giới hạn.",
+      "inputs": "NT-01 (chức danh, sơ đồ tổ chức)",
+      "outputs": "Ngạch và dải lương từng vị trí cho L1-09, L1-10"
+    },
+    {
+      "code": "L1-08",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "KPI – OKR",
+      "features": "Định nghĩa KPI theo chức danh, trọng số, nguồn số liệu (tay hay tự động), công thức tính phần trăm hoàn thành, khung quy đổi thưởng, chốt kỳ. Module khó nhất Luồng 1.",
+      "inputs": "L1-06; số vận hành thật từ L2-01, L2-06, VH-02, L2-14",
+      "outputs": "Phần trăm KPI từng người và từng phòng cho L1-09, L2-15"
+    },
+    {
+      "code": "L1-09",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Chạy thử lương thưởng theo KPI",
+      "features": "Tính song song một kỳ theo cách mới và cách cũ, bảng đối chiếu chênh lệch từng người, ghi nhận nguyên nhân lệch. KHÔNG trả lương theo số mới trong giai đoạn này.",
+      "inputs": "L1-06, L1-07, L1-08",
+      "outputs": "Biên bản đối chiếu để hiệu chỉnh L1-08"
+    },
+    {
+      "code": "L1-10",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Áp dụng chính thức lương thưởng theo KPI",
+      "features": "Chốt kỳ, sinh phiếu lương có phần thưởng theo KPI, công bố tới từng người, tiếp nhận và xử lý khiếu nại, lưu vết quyết định.",
+      "inputs": "L1-09 đã hiệu chỉnh",
+      "outputs": "Quyết định lương thưởng kỳ cho L2-02 (chi phí lương)"
+    },
+    {
+      "code": "L1-11",
+      "group": "Luồng 1 — Hiệu suất và lương thưởng",
+      "package": "C",
+      "name": "Thuế đầu vào – đầu ra đa pháp nhân",
+      "features": "Sổ thuế GTGT vào và ra tách theo từng pháp nhân, đối chiếu với hóa đơn, tổng hợp số phải nộp, hỗ trợ lập tờ khai. Phải xử lý được nhiều thuế suất trên cùng một hóa đơn.",
+      "inputs": "L2-01 (hóa đơn ra), L2-02 (hóa đơn vào), NT-01 (pháp nhân, thuế suất)",
+      "outputs": "Số thuế phải nộp theo kỳ cho L2-03, L2-15"
+    },
+    {
+      "code": "L2-01",
+      "group": "Luồng 2A — Tài chính vận hành",
+      "package": "B",
+      "name": "Quản lý thu — hợp đồng, mặt bằng, hóa đơn, công nợ",
+      "features": "Module lớn nhất hệ thống và là nơi báo giá hay thiếu nhất. Toàn bộ 16 yêu cầu nghiệp vụ bắt buộc nằm ở Phụ lục B. Báo giá không trả lời Phụ lục B sẽ không được xét.",
+      "inputs": "NT-01; VH-02 (yêu cầu dịch vụ có phí); PT-03 (khoản đã thu)",
+      "outputs": "Hóa đơn, khoản thu, dư nợ, doanh thu theo dự án và pháp nhân, tỷ lệ lấp đầy cho L2-03, L2-04, L2-05, L1-08, L1-11, CS, PT"
+    },
+    {
+      "code": "L2-02",
+      "group": "Luồng 2A — Tài chính vận hành",
+      "package": "B",
+      "name": "Quản lý chi",
+      "features": "Khoản chi phân theo dự án, pháp nhân và loại: tiền thuê trả chủ nhà, quản lý vận hành, điện nước đầu vào, lương, marketing, chi phí setup. Quy trình đề nghị, duyệt, thanh toán. Hóa đơn đầu vào. Nhắc hạn chi. Chi định kỳ theo hợp đồng đầu vào.",
+      "inputs": "NT-01; L1-10 (chi phí lương); VH-01 (chi phí bảo trì); hợp đồng thuê đầu vào",
+      "outputs": "Chi theo dự án và kỳ cho L2-03, L2-04, L2-05, L1-11"
+    },
+    {
+      "code": "L2-03",
+      "group": "Luồng 2A — Tài chính vận hành",
+      "package": "B",
+      "name": "Dòng tiền và dự báo",
+      "features": "Dòng tiền thực tế theo ngày, tuần, tháng. DỰ BÁO TƯƠNG LAI dựng từ lịch thu của hợp đồng đang hiệu lực cộng lịch chi đã cam kết. Kịch bản giả định. Ngưỡng số dư tối thiểu và cảnh báo trước khi chạm ngưỡng.",
+      "inputs": "L2-01, L2-02, L1-11",
+      "outputs": "Dòng tiền hiện tại và dự báo cho L2-15"
+    },
+    {
+      "code": "L2-04",
+      "group": "Luồng 2A — Tài chính vận hành",
+      "package": "B",
+      "name": "Hiệu quả dự án đang triển khai",
+      "features": "Lãi lỗ từng dự án mới theo mô hình Master Lease và Managed Office: doanh thu hợp đồng đã ký trừ chi phí trả chủ đầu tư, thời gian miễn phí, chi phí setup, marketing, bán hàng, quản lý vận hành. Điểm hòa vốn. So sánh kế hoạch với thực tế.",
+      "inputs": "L2-01, L2-02, và giả định gốc từ L2-06, L2-07, L2-08",
+      "outputs": "Hiệu quả từng dự án theo kỳ cho L2-15"
+    },
+    {
+      "code": "L2-05",
+      "group": "Luồng 2A — Tài chính vận hành",
+      "package": "B",
+      "name": "Đánh giá dự án đã hoạt động",
+      "features": "Lãi lỗ và biên lợi nhuận từng dự án theo tháng, đối chiếu với mô hình tài chính lúc thẩm định để biết dự án chạy đúng hay lệch giả định ban đầu.",
+      "inputs": "L2-01, L2-02, L2-06 (mô hình gốc)",
+      "outputs": "Biên lợi nhuận theo dự án cho L2-15"
+    },
+    {
+      "code": "L2-06",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Thẩm định nhà nhập tiềm năng — Master Leasing",
+      "features": "Mô hình tài chính vòng đời 10 năm cho một tòa nhà trước khi ký thuê. Công cụ quyết định đầu tư, không phải bảng tính đơn giản. Chi tiết ở Phụ lục D.",
+      "inputs": "NT-01; thông số tòa nhà và bộ giả định do Phòng Kinh doanh nhập",
+      "outputs": "Hồ sơ thẩm định và giả định gốc cho L2-04, L2-05, L2-15"
+    },
+    {
+      "code": "L2-07",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Thẩm định dự án Managed Office",
+      "features": "Dùng lại khung L2-06, khác cơ cấu chi phí, thời hạn 5 năm và công thức giá bán theo thỏa thuận hợp tác.",
+      "inputs": "Khung tính của L2-06",
+      "outputs": "Như L2-06"
+    },
+    {
+      "code": "L2-08",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Thẩm định dự án Setup",
+      "features": "Giá cho thuê, giá vốn, chi phí setup, chi phí dịch vụ, thời gian hoàn vốn. Dùng lại khung L2-06.",
+      "inputs": "Khung tính của L2-06",
+      "outputs": "Như L2-06"
+    },
+    {
+      "code": "L2-09",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Quy trình vòng đời dự án Master Leasing — 10 năm",
+      "features": "Số hóa quy trình từ lúc chuẩn bị tiếp nhận tòa nhà tới hết hợp đồng: các bước, vai trò phụ trách và phối hợp, mốc thời gian, tài liệu bắt buộc mỗi bước, xác nhận chuyển bước, cảnh báo trễ. Là khung để L2-12 và L2-13 dùng lại, cần làm trước.",
+      "inputs": "NT-01 (nhân sự, chức danh); L2-06 (dự án đã duyệt)",
+      "outputs": "Đầu việc sinh tự động cho L1-03; tiến độ vòng đời cho L2-15"
+    },
+    {
+      "code": "L2-10",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Quy trình vòng đời Master Leasing — mô hình Gems Office, 5 năm",
+      "features": "Cùng cơ chế L2-09, khác mô hình tòa nhà và bộ bước.",
+      "inputs": "Khung của L2-09",
+      "outputs": "Như L2-09"
+    },
+    {
+      "code": "L2-11",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Quy trình vòng đời Managed Office — OUT",
+      "features": "Dự án không thuộc Master Leasing. Cùng cơ chế L2-09.",
+      "inputs": "Khung của L2-09",
+      "outputs": "Như L2-09"
+    },
+    {
+      "code": "L2-12",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Quy trình vòng đời Managed Office — IN",
+      "features": "Dự án thuộc Master Leasing. Dùng lại khung L2-09.",
+      "inputs": "Khung của L2-09",
+      "outputs": "Như L2-09"
+    },
+    {
+      "code": "L2-13",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Quy trình vòng đời dự án Setup",
+      "features": "Dùng lại khung L2-09.",
+      "inputs": "Khung của L2-09",
+      "outputs": "Như L2-09"
+    },
+    {
+      "code": "L2-14",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Tiêu chuẩn công việc và chất lượng dịch vụ",
+      "features": "Bộ tiêu chuẩn theo vị trí hiện trường: an ninh, tạp vụ, lễ tân, kỹ thuật. Phiếu chấm chất lượng trên điện thoại kèm ảnh và vị trí, theo tần suất định sẵn. Điểm chất lượng dịch vụ theo tòa và theo người.",
+      "inputs": "NT-01 (nhân sự); L2-09 đến L2-13 (bước quy trình)",
+      "outputs": "Điểm chất lượng dịch vụ cho L1-03, L1-08, L2-15"
+    },
+    {
+      "code": "L2-15",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Bảng tổng hợp điều hành công ty",
+      "features": "Một màn hình duy nhất: dòng tiền và dự báo, doanh thu, tỷ lệ lấp đầy, biên lợi nhuận từng dự án, phần trăm KPI từng phòng, tiến độ vòng đời các dự án, danh sách cảnh báo. Lọc theo pháp nhân và theo dự án. Độ trễ dữ liệu tối đa một ngày. Không ai nhập liệu ở đây.",
+      "inputs": "L2-03, L2-04, L2-05, L2-06 đến L2-08, L2-09 đến L2-14, L1-06, L1-08",
+      "outputs": "Điểm cuối của cả hai luồng"
+    },
+    {
+      "code": "L2-16",
+      "group": "Luồng 2B — Thẩm định, quy trình, điều hành",
+      "package": "D",
+      "name": "Công việc liên phòng ban",
+      "features": "Việc đi qua nhiều phòng: phân vai phòng chủ trì và phòng thực hiện, xác nhận bàn giao ở từng khâu chuyển, cảnh báo việc đang tắc ở khâu nào và bao lâu rồi.",
+      "inputs": "L1-01 đến L1-05; NT-01",
+      "outputs": "Đầu việc liên phòng cho L1-06, L2-15"
+    },
+    {
+      "code": "VH-01",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Thiết bị kỹ thuật và bảo trì định kỳ",
+      "features": "Danh mục thiết bị theo tòa và tầng: phòng cháy chữa cháy, thang máy, điều hòa, bơm, hệ điện. Hồ sơ thiết bị, hạn bảo hành, lịch bảo trì theo chu kỳ, nhắc lịch, nhật ký bảo trì kèm ảnh, chi phí từng lần.",
+      "inputs": "NT-01 (dự án, mặt bằng)",
+      "outputs": "Chi phí bảo trì cho L2-02; đầu việc định kỳ cho L1-03"
+    },
+    {
+      "code": "VH-02",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Sự cố và yêu cầu dịch vụ",
+      "features": "Tiếp nhận qua Portal, web hoặc lễ tân. Phân loại và mức ưu tiên, phân công người xử lý, cam kết thời gian xử lý theo loại, ảnh hiện trường, nghiệm thu của khách. Yêu cầu có phát sinh phí phải đẩy sang L2-01 để lên hóa đơn, không tự tính tiền tại đây.",
+      "inputs": "PT-01 và PT-02 (khách báo), CS-01, VH-01",
+      "outputs": "Số sự cố và thời gian xử lý cho L1-03, L1-08; phí phát sinh cho L2-01"
+    },
+    {
+      "code": "CS-01",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Hồ sơ khách thuê và lịch sử chăm sóc",
+      "features": "Thông tin công ty, người đại diện, các đầu mối liên hệ, lịch sử thuê qua nhiều hợp đồng và nhiều tòa, ghi chú chăm sóc, cảnh báo hợp đồng sắp hết hạn để chuẩn bị tái ký, khảo sát mức hài lòng.",
+      "inputs": "L2-01 (khách thuê, hợp đồng), NT-01",
+      "outputs": "Tín hiệu tái ký hoặc rời đi cho L1-02, L2-15"
+    },
+    {
+      "code": "CS-02",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Thông báo đa kênh",
+      "features": "Soạn và gửi email, SMS, Zalo OA theo nhóm: theo tòa, theo tầng, theo hợp đồng sắp hết hạn, theo nhóm còn dư nợ. Mẫu thông báo, lịch gửi, nhật ký đã gửi và đã xem. Nhắc nợ ba cấp độ với nội dung tăng dần, cấu hình được số ngày trước và sau hạn.",
+      "inputs": "L2-01 (dư nợ, hạn thanh toán), CS-01, VH-01 (lịch bảo trì)",
+      "outputs": "Nhật ký gửi và phản hồi cho CS-01, L2-01"
+    },
+    {
+      "code": "PT-01",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Portal khách thuê — bản web",
+      "features": "Tài khoản do hệ thống cấp theo hợp đồng. Xem hợp đồng và phụ lục, hóa đơn và lịch sử thanh toán, dư nợ hiện tại, chỉ số điện nước từng kỳ, gửi yêu cầu dịch vụ, đọc thông báo tòa nhà.",
+      "inputs": "L2-01, VH-02, CS-02, NT-02",
+      "outputs": "Yêu cầu dịch vụ cho VH-02"
+    },
+    {
+      "code": "PT-02",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Ứng dụng di động iOS và Android",
+      "features": "Toàn bộ chức năng PT-01, thêm: thông báo đẩy, nút liên hệ khẩn cấp, hotline, đặt tiện ích, thiết lập bảo mật, xóa tài khoản theo yêu cầu của kho ứng dụng. Bao gồm đăng tải và duy trì trên App Store và Google Play.",
+      "inputs": "PT-01",
+      "outputs": "Như PT-01"
+    },
+    {
+      "code": "PT-03",
+      "group": "Vận hành, khách thuê và Portal",
+      "package": "A",
+      "name": "Thanh toán trực tuyến",
+      "features": "Mã QR hoặc số tài khoản định danh theo từng hóa đơn, đối soát tự động với sao kê ngân hàng, biên nhận gửi khách. Ghi nhận thu một phần. Nêu rõ ngân hàng và cổng thanh toán đã tích hợp được.",
+      "inputs": "L2-01 (hóa đơn phải thu)",
+      "outputs": "Khoản đã thu cho nhật ký thu tiền của L2-01"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "A-1",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Danh mục nghĩa vụ theo chức danh. Mỗi chức danh có bộ nghĩa vụ khai một lần; đầu việc kế thừa thuộc tính từ nghĩa vụ, không khai lại."
+    },
+    {
+      "id": "A-2",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Mức thiệt hại bốn bậc định tính, khai ở danh mục nghĩa vụ. Không dùng thang theo giá trị tiền — Gems đã thử và bỏ vì nghĩa vụ với đầu việc con hầu như luôn lệch nhau."
+    },
+    {
+      "id": "A-3",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Bốn trạng thái duyệt: chưa hoàn thành, chờ duyệt, đã duyệt HOẶC bị trả lại. Không phải hai trạng thái."
+    },
+    {
+      "id": "A-4",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Vòng duyệt hai chiều. Việc hoàn thành tự nổi lên hàng đợi của Trưởng phòng; quyết định của Trưởng phòng ghi ngược về đúng bản ghi của nhân viên và việc rút khỏi hàng đợi."
+    },
+    {
+      "id": "A-5",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Nhánh trả lại phải có đường ra. Việc bị trả lại cần một thao tác rõ ràng để nhân viên báo đã làm lại và đưa việc quay lại hàng đợi duyệt. Thiếu bước này việc bị kẹt vĩnh viễn — Gems đã gặp trên ba mã việc thật."
+    },
+    {
+      "id": "A-6",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Chỉ số bó theo kỳ. Bảng phòng ban chỉ đếm việc có hạn hoàn thành rơi trong kỳ đang xem, không đếm toàn bộ số dòng trong hệ thống."
+    },
+    {
+      "id": "A-7",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Điểm rủi ro tính từ mức thiệt hại và số ngày trễ."
+    },
+    {
+      "id": "A-8",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Thời điểm ghi nhận do hệ thống quản lý. Cột ngày người dùng nhập và mốc thời gian hệ thống ghi phải tách nhau, nếu không thứ tự sự kiện sẽ sai khi người và máy cùng ghi."
+    },
+    {
+      "id": "A-9",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Chuẩn hóa nhập liệu ngay khi gõ: ngày kiểu 5/9 hoặc 5-9-26; tỷ lệ kiểu 80% hoặc 0,8. Chặn ngày hoàn thành nằm ở tương lai."
+    },
+    {
+      "id": "A-10",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Rà soát dữ liệu tự động hằng ngày: trùng mã, sai khuôn mã, thiếu hạn hoàn thành, nghĩa vụ không gắn với chức danh nào."
+    },
+    {
+      "id": "A-11",
+      "appendix": "A",
+      "modules": "L1-01 đến L1-05",
+      "description": "Nhập liệu trên điện thoại — bắt buộc với L1-03 vì Ban Quản lý có nhiều nhân sự hiện trường."
+    },
+    {
+      "id": "B-12",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Lộ trình giá thuê theo ngày hiệu lực. Một hợp đồng có nhiều mức giá theo từng giai đoạn. Sửa giá hôm nay KHÔNG được làm đổi số đã tính của các kỳ trước."
+    },
+    {
+      "id": "B-13",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Đơn giá dịch vụ theo hợp đồng nhân loại phí nhân ngày hiệu lực. Không gắn đơn giá vào khách hàng, vì một khách thuê hai tầng có thể có hai mức giá khác nhau. Yêu cầu quan trọng nhất của phụ lục này."
+    },
+    {
+      "id": "B-14",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Thuế suất tách theo từng loại phí: thuê văn phòng 10%, biển bảng 10%, điện 8%, xe 8%, nước 5%, ngoài giờ 10%, phí dịch vụ khác 8%. Kèm cờ khách có lấy hóa đơn thuế hay không."
+    },
+    {
+      "id": "B-15",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Hợp đồng ghi giá ngoại tệ. Bảng tỷ giá theo ngày, tra đúng mốc gần nhất của ĐÚNG hợp đồng đó, và không cộng dồn khi có hai mốc cùng ngày."
+    },
+    {
+      "id": "B-16",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Nhiều cách tính tiền nước: theo công tơ, theo khoán, hoặc hai cách cùng tồn tại trên một khách."
+    },
+    {
+      "id": "B-17",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Công tơ điện và nước: chỉ số đầu kỳ và cuối kỳ, tính ra sản lượng và tiền theo đơn giá đang hiệu lực."
+    },
+    {
+      "id": "B-18",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Bồi thường dừng hợp đồng trước hạn: báo trước đủ hai tháng thì đền hai tháng tiền thuê, không đủ thì đền bốn tháng. Chỉ áp cho trường hợp dừng trước hạn, không áp cho không gia hạn. Mỗi hợp đồng ghi đè được mức riêng."
+    },
+    {
+      "id": "B-19",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Tiền cọc: nhận, giữ, cấn trừ vào kỳ cuối, hoàn trả khi thanh lý."
+    },
+    {
+      "id": "B-20",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Thời gian miễn phí setup khai theo hợp đồng và tự loại khỏi kỳ thu."
+    },
+    {
+      "id": "B-21",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Đóng hợp đồng kéo hai hiệu ứng dây chuyền: mặt bằng tự chuyển sang trạng thái trống, và các kỳ chưa tới hạn tự dừng thu; kỳ đã qua giữ nguyên, không sửa ngược."
+    },
+    {
+      "id": "B-22",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Mã hợp đồng dẫn xuất từ mã mặt bằng và mã khách; gia hạn thêm hậu tố lần 2, lần 3. Sửa mã khách thì mọi tham chiếu đi theo."
+    },
+    {
+      "id": "B-23",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Nhật ký thu tiền: một hóa đơn có thể thu nhiều lần, nhiều ngày, nhiều hình thức."
+    },
+    {
+      "id": "B-24",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Hóa đơn: sinh theo kỳ, đánh số riêng theo từng pháp nhân, xuất PDF, gửi email. Nêu rõ có kết nối được hóa đơn điện tử và phần mềm kế toán đang dùng hay không, và chi phí kết nối do bên nào chịu."
+    },
+    {
+      "id": "B-25",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Công nợ theo tuổi nợ 0-30, 30-60, 60-90, trên 90 ngày; bảng cảnh báo chỉ liệt kê hợp đồng tới hạn trong 90 ngày tới, không liệt kê toàn bộ."
+    },
+    {
+      "id": "B-26",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Lấp đầy theo tháng: số mặt bằng trống, mét vuông trống, tỷ lệ trống, và giá trị tiền của phần đang trống."
+    },
+    {
+      "id": "B-27",
+      "appendix": "B",
+      "modules": "L2-01",
+      "description": "Đa pháp nhân: hóa đơn xuất theo pháp nhân đứng tên hợp đồng; báo cáo lọc được theo từng pháp nhân và theo cả nhóm."
+    },
+    {
+      "id": "C-28",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Bộ KPI khai theo chức danh, không khai theo từng người, để người mới vào vị trí là kế thừa ngay."
+    },
+    {
+      "id": "C-29",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Mỗi chỉ tiêu khai rõ nguồn số: lấy tự động từ module nào, hay do ai nhập tay. Chỉ tiêu không nói được nguồn thì không được đưa vào khung tính thưởng."
+    },
+    {
+      "id": "C-30",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Trọng số và ngưỡng: mức tối thiểu, mức đạt, mức vượt; công thức quy đổi ra phần trăm hoàn thành."
+    },
+    {
+      "id": "C-31",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Khung quy đổi thưởng từ phần trăm hoàn thành ra số tiền, theo ngạch lương của L1-07."
+    },
+    {
+      "id": "C-32",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Chốt kỳ và đóng băng. Sau khi chốt, số liệu kỳ đó chỉ đọc."
+    },
+    {
+      "id": "C-33",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Chạy thử song song với cách tính cũ ít nhất một kỳ trước khi áp dụng thật — yêu cầu bắt buộc của Gems, không phải tùy chọn."
+    },
+    {
+      "id": "C-34",
+      "appendix": "C",
+      "modules": "L1-08",
+      "description": "Người lao động xem được cách tính của chính mình, không chỉ xem con số cuối cùng."
+    },
+    {
+      "id": "D-35",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Mô hình dòng tiền theo tháng cho toàn vòng đời: 10 năm với Master Leasing, 5 năm với Managed Office và Setup."
+    },
+    {
+      "id": "D-36",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Đầu vào phía chi phí: giá thuê trả chủ nhà, lộ trình tăng giá theo năm, thời gian miễn phí, tiền cọc phải đặt, chi phí setup ban đầu, chi phí vận hành, chi phí marketing và bán hàng."
+    },
+    {
+      "id": "D-37",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Đầu vào phía doanh thu: diện tích cho thuê được, giả định giá bán và lộ trình tăng, giả định tốc độ lấp đầy theo tháng, giả định tỷ lệ khách rời đi."
+    },
+    {
+      "id": "D-38",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Ba kịch bản tốt, cơ sở, xấu — chạy đồng thời, hiển thị cạnh nhau."
+    },
+    {
+      "id": "D-39",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Chỉ số quyết định: điểm hòa vốn theo tháng, tổng lãi lỗ vòng đời, giá trị hiện tại ròng, tỷ suất hoàn vốn nội bộ, mức lấp đầy tối thiểu để không lỗ."
+    },
+    {
+      "id": "D-40",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "So sánh nhiều tòa nhà cạnh nhau trên cùng bộ tiêu chí, để chọn giữa các cơ hội đang đàm phán."
+    },
+    {
+      "id": "D-41",
+      "appendix": "D",
+      "modules": "L2-06 đến L2-08",
+      "description": "Bộ giả định được lưu lại và chuyển tiếp sang L2-04 và L2-05, để sau này đối chiếu dự án chạy thật với mô hình lúc quyết định."
+    }
+  ],
+  "scale": [
+    {
+      "metric": "Pháp nhân",
+      "current": "4",
+      "future": "6–8",
+      "note": "Hóa đơn, thuế và báo cáo phải tách được theo pháp nhân"
+    },
+    {
+      "metric": "Dự án / tòa nhà",
+      "current": "14",
+      "future": "40–60",
+      "note": "Ba mô hình khác nhau: Master Lease, Managed Office, Setup"
+    },
+    {
+      "metric": "Mặt bằng cho thuê",
+      "current": "121",
+      "future": "~400",
+      "note": "Có tách và gộp mặt bằng trong vòng đời"
+    },
+    {
+      "metric": "Hợp đồng đang hiệu lực",
+      "current": "116",
+      "future": "~350",
+      "note": "Thời hạn từ 1 đến 10 năm; có hợp đồng tới năm 2034"
+    },
+    {
+      "metric": "Khách thuê",
+      "current": "109",
+      "future": "~320",
+      "note": "Một khách có thể thuê nhiều mặt bằng ở nhiều tòa"
+    },
+    {
+      "metric": "Hợp đồng ghi giá ngoại tệ",
+      "current": "14",
+      "future": "—",
+      "note": "Bắt buộc có bảng tỷ giá theo ngày, xem Phụ lục B"
+    },
+    {
+      "metric": "Người dùng nội bộ",
+      "current": "~35",
+      "future": "~90",
+      "note": "5 phòng ban, 3 mức quyền"
+    },
+    {
+      "metric": "Người dùng khách thuê (Portal)",
+      "current": "0",
+      "future": "~320",
+      "note": "Mỗi hợp đồng ít nhất một tài khoản"
+    },
+    {
+      "metric": "Đầu việc phát sinh mỗi năm",
+      "current": "~1.000 / phòng",
+      "future": "~3.000 / phòng",
+      "note": "Ảnh hưởng thiết kế bảng và chỉ số theo kỳ"
+    }
+  ],
+  "integration": [
+    {
+      "number": "1",
+      "name": "Một thực thể, một chủ sở hữu",
+      "description": "Không có hai hệ thống cùng ghi vào một loại bản ghi. Sheet DuLieuDungChung quyết định ai được ghi."
+    },
+    {
+      "number": "2",
+      "name": "Mã do Gems cấp",
+      "description": "Bên nhận gói không tự sinh mã cho thực thể mình không sở hữu. Mọi bản ghi mang mã Gems, không mang mã nội bộ của nhà cung cấp làm khóa chính đối ngoại."
+    },
+    {
+      "number": "3",
+      "name": "API đọc cho mọi thực thể",
+      "description": "REST, trả JSON, có phân trang, có lọc theo cap_nhat_tu để lấy bản ghi thay đổi từ một mốc thời gian."
+    },
+    {
+      "number": "4",
+      "name": "Thông báo khi dữ liệu đổi",
+      "description": "Webhook có ký xác thực, có thử lại và hàng đợi lỗi. Nếu không làm được webhook thì tối thiểu phải có API lấy thay đổi theo mốc thời gian, và nêu rõ độ trễ."
+    },
+    {
+      "number": "5",
+      "name": "Truy vết trên từng bản ghi",
+      "description": "Mỗi bản ghi mang nguon_he_thong, nguoi_cap_nhat, cap_nhat_luc."
+    },
+    {
+      "number": "6",
+      "name": "Không đồng bộ bằng file thủ công",
+      "description": "Không có bước xuất Excel rồi nhập tay sang hệ khác. Không có số liệu nào phải gõ hai lần ở hai nơi."
+    },
+    {
+      "number": "7",
+      "name": "Đơn giá và thuế suất có hiệu lực theo ngày",
+      "description": "Sửa giá hôm nay không được làm thay đổi số đã tính của kỳ trước. Bắt buộc, không phải tùy chọn."
+    },
+    {
+      "number": "8",
+      "name": "Kỳ đã chốt phải đóng băng",
+      "description": "Sau khi chốt kỳ, số liệu chỉ đọc; sửa phải qua bút toán điều chỉnh có ghi vết."
+    },
+    {
+      "number": "9",
+      "name": "Đăng nhập chung",
+      "description": "Đăng nhập một lần qua Google Workspace của Gems cho người dùng nội bộ; tài khoản riêng cho khách thuê ở Portal."
+    },
+    {
+      "number": "10",
+      "name": "Xuất dữ liệu bất kỳ lúc nào",
+      "description": "Gems tự xuất được toàn bộ dữ liệu ra CSV hoặc JSON qua giao diện quản trị, không cần nhà cung cấp hỗ trợ, không mất phí."
+    }
+  ],
+  "ownership": [
+    {
+      "entity": "Pháp nhân",
+      "key": "MA_PN",
+      "rule": "Khai một lần, không đổi",
+      "owner": "NT-01",
+      "readers": "Toàn hệ thống"
+    },
+    {
+      "entity": "Dự án / tòa nhà",
+      "key": "MA_DA",
+      "rule": "Viết tắt địa chỉ, ví dụ 201TC, 18KTD",
+      "owner": "NT-01",
+      "readers": "L2-01 đến L2-05, VH, PT, L2-06 đến L2-15"
+    },
+    {
+      "entity": "Mặt bằng",
+      "key": "MA_MB",
+      "rule": "Mã dự án cộng tầng và số phòng",
+      "owner": "L2-01",
+      "readers": "L2-04, VH-01, PT, L2-15"
+    },
+    {
+      "entity": "Khách thuê",
+      "key": "MA_KH",
+      "rule": "Tăng dần, không tái sử dụng",
+      "owner": "L2-01",
+      "readers": "CS-01, CS-02, PT, L1-02"
+    },
+    {
+      "entity": "Hợp đồng",
+      "key": "MA_HD",
+      "rule": "DẪN XUẤT: MA_MB cộng MA_KH; gia hạn thêm hậu tố L2, L3",
+      "owner": "L2-01",
+      "readers": "L2-03 đến L2-05, CS, PT, L1-11"
+    },
+    {
+      "entity": "Hóa đơn",
+      "key": "MA_HDON",
+      "rule": "Đánh số theo từng pháp nhân",
+      "owner": "L2-01",
+      "readers": "L2-03, L1-11, PT-01, PT-03"
+    },
+    {
+      "entity": "Nhân sự",
+      "key": "MA_NS",
+      "rule": "Gắn với tài khoản Google Workspace",
+      "owner": "NT-01",
+      "readers": "L1-01 đến L1-11, L2-09 đến L2-14, VH-02"
+    },
+    {
+      "entity": "Phòng ban",
+      "key": "MA_PB",
+      "rule": "TCKT, PKD, BQL, MKT, HCNS",
+      "owner": "NT-01",
+      "readers": "L1-01 đến L1-08, L2-16"
+    },
+    {
+      "entity": "Chức danh",
+      "key": "MA_CD",
+      "rule": "Gắn ngạch lương và bộ KPI",
+      "owner": "L1-07",
+      "readers": "L1-08 đến L1-10, L2-14"
+    },
+    {
+      "entity": "Đầu việc",
+      "key": "MA_CV",
+      "rule": "Mã phòng cộng kỳ cộng số thứ tự",
+      "owner": "L1-01 đến L1-05",
+      "readers": "L1-06, L1-08, L2-16"
+    },
+    {
+      "entity": "Nghĩa vụ theo chức danh",
+      "key": "MA_NV",
+      "rule": "Khai ở danh mục nghĩa vụ, đầu việc kế thừa",
+      "owner": "L1-01 đến L1-05",
+      "readers": "L1-08, L2-14"
+    },
+    {
+      "entity": "Thiết bị kỹ thuật",
+      "key": "MA_TB",
+      "rule": "Mã dự án cộng loại cộng số thứ tự",
+      "owner": "VH-01",
+      "readers": "VH-02, L2-02"
+    },
+    {
+      "entity": "Sự cố / yêu cầu dịch vụ",
+      "key": "MA_SC",
+      "rule": "Tăng dần theo dự án",
+      "owner": "VH-02",
+      "readers": "L1-03, L1-08, L2-01, PT"
+    },
+    {
+      "entity": "Loại phí và thuế suất",
+      "key": "MA_PHI",
+      "rule": "CÓ HIỆU LỰC THEO NGÀY, không ghi đè lịch sử",
+      "owner": "NT-01",
+      "readers": "L2-01, L2-02, L1-11"
+    }
+  ]
+}
