@@ -36,6 +36,35 @@ Database bền vững nằm tại `data/erp.sqlite`, dùng SQLite WAL. Dữ li�
 lưu ở máy chủ, không còn dựa vào localStorage của ứng dụng ban đầu. Dữ liệu
 SQLite và bản sao lưu không được đưa vào Git và bị chặn phục vụ qua Vite.
 
+## Dữ liệu demo
+
+Sau khi cài phụ thuộc, tạo dữ liệu minh họa bằng:
+
+```bash
+npm run seed:demo
+npm run dev
+```
+
+Bộ mẫu gồm 4 pháp nhân, 3 tòa nhà, 9 mặt bằng, 4 khách thuê/hợp đồng,
+5 nhân sự ở 5 phòng ban; hóa đơn và thu/chi trong 6 tháng, tiền cọc,
+bút toán kế toán, công việc/KPI, thiết bị, sự cố, thông báo, thẩm định,
+đề nghị mua sắm và một mã vật tư. Một số hóa đơn tháng hiện tại chưa thu
+hoặc thu một phần để xem công nợ. Kho vật tư ban đầu có tồn bằng 0 để thử nhập kho.
+Các tên, địa chỉ, email và giao dịch đều giả lập; email dùng `example.com`.
+Kỳ dữ liệu lấy theo ngày tạo; chạy lại giữ nguyên kỳ và không sinh bản ghi trùng.
+
+Lệnh không tạo tài khoản hay mật khẩu. Nếu chưa khởi tạo, mở ứng dụng và tự
+tạo quản trị viên; tùy chọn dữ liệu minh họa lúc tạo quản trị không nhân đôi
+bộ dữ liệu đã có. Tài khoản hiện có được giữ nguyên.
+
+Lệnh từ chối thêm demo nếu database đã có dữ liệu nghiệp vụ khác. Để trải
+nghiệm ở database riêng mà giữ dữ liệu hiện tại (Bash):
+
+```bash
+ERP_DB=data/demo.sqlite npm run seed:demo
+ERP_DB=data/demo.sqlite npm run dev
+```
+
 ## Các phân hệ có chức năng
 
 | Nhóm | Chức năng |

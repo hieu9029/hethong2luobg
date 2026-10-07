@@ -1,6 +1,21 @@
 import {randomUUID} from 'node:crypto';
 import {dateToday} from '../shared/schema.js';
+import {assert} from './finance.js';
 export function seedDemo(store,erp,actor){
+ return store.transaction(()=>{
+  if(store.setting('demo')==='true')return demoSummary(store,false);
+  const existing=store.db.prepare("SELECT COUNT(*) AS count FROM records WHERE collection NOT IN ('accounts','feeTypes')").get().count;
+  assert(existing===0,'Cơ sở dữ liệu đã có dữ liệu nghiệp vụ. Hãy dùng một database riêng để trải nghiệm demo; dữ liệu hiện tại được giữ nguyên.',409);
+  seedTaxes(store);
+  populateDemo(store,erp,actor);
+  store.setSetting('demoPeriod',dateToday().slice(0,7));
+  return demoSummary(store,true);
+ });
+}
+function demoSummary(store,created){
+ return {created,period:store.setting('demoPeriod'),counts:Object.fromEntries(store.db.prepare('SELECT collection,COUNT(*) AS count FROM records GROUP BY collection ORDER BY collection').all().map(row=>[row.collection,row.count]))};
+}
+function populateDemo(store,erp,actor){
  const {put,list}=store;const today=dateToday(),year=Number(today.slice(0,4)),period=today.slice(0,7),startYear=year-1;
  const add=(type,code,data)=>put(type,{id:randomUUID(),code,...data,demo:true},actor,'demo-seed');
  const entities=['Gems Office Demo','Gems Services Demo','Gems Management Demo','Gems Investment Demo'].map((name,i)=>add('legalEntities','PN-'+String(i+1).padStart(4,'0'),{name,taxCode:'DỮ LIỆU MẪU',address:'TP. Hồ Chí Minh'}));
