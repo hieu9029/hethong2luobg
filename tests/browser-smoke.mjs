@@ -2,20 +2,29 @@ import {createServer} from '../server/index.js';
 import {createServer as createVite} from 'vite';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
+import viteConfig from '../vite.config.js';
 const app=createServer({dbPath:':memory:'});await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+app.server.address().port;
-let vite=null;let webOrigin=origin;if(process.env.ERP_TEST_MODE!=='production'){vite=await createVite({server:{host:'127.0.0.1',port:0,strictPort:false}});await vite.listen();webOrigin='http://127.0.0.1:'+vite.httpServer.address().port;}
+let vite=null;let webOrigin=origin;if(process.env.ERP_TEST_MODE!=='production'){const configuredProxy=viteConfig.server.proxy['/api'];const apiProxy=typeof configuredProxy==='string'?origin:{...configuredProxy,target:origin};vite=await createVite({server:{host:'127.0.0.1',port:0,strictPort:false,proxy:{'/api':apiProxy}}});await vite.listen();webOrigin='http://127.0.0.1:'+vite.httpServer.address().port;}
 const browser=await chromium.launch({executablePath:process.env.BROWSER_EXECUTABLE||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
 const context=await browser.newContext({viewport:{width:1440,height:1080}});const page=await context.newPage();const errors=[];
 page.on('pageerror',error=>errors.push(error.message));
-await context.route('**/api/**',async route=>{const req=route.request();const path=new URL(req.url()).pathname+new URL(req.url()).search;const headers={...req.headers(),origin};delete headers.host;const result=await route.fetch({url:origin+path,headers});await route.fulfill({response:result});});
 let count=0;const pass=label=>{count++;console.log('PASS '+label)};
 const go=async key=>{await page.locator('.sidebar [data-page="'+key+'"]').evaluate(el=>{const details=el.closest('details');if(details)details.open=true;});await page.locator('.sidebar [data-page="'+key+'"]').click();await page.waitForFunction(k=>location.hash==='#'+k,key);await page.waitForTimeout(180);};
 try{
  const privateFile=await fetch(webOrigin+'/data/erp.sqlite');if(vite)assert.equal(privateFile.status,403);else assert.match(privateFile.headers.get('content-type'),/text\/html/);pass('File database không được phục vụ qua HTTP');
+ const blockedOrigin=await fetch(webOrigin+'/api/auth/bootstrap',{method:'POST',headers:{'Content-Type':'application/json','X-ERP-Request':'1',Origin:'https://untrusted.example'},body:JSON.stringify({username:'blocked-test',name:'Blocked Test',password:'isolated-blocked-test-123'})});assert.equal(blockedOrigin.status,403);assert.equal((await blockedOrigin.json()).error,'Nguồn yêu cầu không hợp lệ.');pass('Proxy vẫn chặn nguồn truy cập bên ngoài');
+ const blockedHeader=await fetch(webOrigin+'/api/auth/bootstrap',{method:'POST',headers:{'Content-Type':'application/json',Origin:webOrigin},body:'{}'});assert.equal(blockedHeader.status,403);pass('Yêu cầu ghi dữ liệu vẫn cần header bảo vệ');
  await page.goto(webOrigin);await page.locator('#auth-form').waitFor();
- await page.locator('[name=name]').fill('Minh Anh');await page.locator('[name=username]').fill('browser-admin');await page.locator('[name=password]').fill('browser-test-password-123');await page.getByRole('button',{name:'Tạo hệ thống ERP',exact:true}).click();
- await page.locator('.stat-grid').waitFor({timeout:15000});assert.match(await page.locator('h1').textContent(),/Tổng quan/);pass('Khởi tạo ERP, đăng nhập và dashboard dữ liệu mẫu');
+ await page.locator('[name=name]').fill('Minh Anh');await page.locator('[name=username]').fill('browser-admin');await page.locator('[name=password]').fill('browser-test-password-123');
+ const bootstrapResponse=page.waitForResponse(response=>response.url().endsWith('/api/auth/bootstrap')&&response.request().method()==='POST');
+ await page.getByRole('button',{name:'Tạo hệ thống ERP',exact:true}).click();
+ const created=await bootstrapResponse;assert.equal(created.status(),201,JSON.stringify(await created.json()));
+ await page.locator('.stat-grid').waitFor({timeout:15000});assert.match(await page.locator('h1').textContent(),/Tổng quan/);pass('Khởi tạo ERP qua cùng origin và dashboard dữ liệu mẫu');
+ await page.locator('#logout').click();await page.locator('#auth-form').waitFor();
+ await page.locator('[name=username]').fill('browser-admin');await page.locator('[name=password]').fill('browser-test-password-123');
+ const loginResponse=page.waitForResponse(response=>response.url().endsWith('/api/auth/login')&&response.request().method()==='POST');
+ await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();assert.equal((await loginResponse).status(),200);await page.locator('.stat-grid').waitFor();pass('Đăng xuất và đăng nhập lại qua giao diện thực tế');
  await page.screenshot({path:'/tmp/gems-erp-dashboard.png',fullPage:true});
  await go('buildings');await page.locator('#add-record').click();await page.locator('[name=name]').fill('Tòa nhà kiểm thử');await page.locator('[name=legalEntityId]').selectOption({label:'Gems Office Demo'});await page.locator('[name=address]').fill('Địa chỉ kiểm thử');await page.locator('[name=model]').selectOption('Master Lease');await page.locator('[name=area]').fill('500');await page.getByRole('button',{name:'Lưu dữ liệu',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#modal').open);await page.locator('tbody').getByText('Tòa nhà kiểm thử',{exact:true}).waitFor();pass('CRUD tòa nhà lưu trên database');
  await go('tenants');await page.locator('#add-record').click();await page.locator('[name=name]').fill('Khách kiểm thử');await page.locator('[name=email]').fill('test@example.com');await page.getByRole('button',{name:'Lưu dữ liệu',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#modal').open);await page.locator('tbody').getByText('Khách kiểm thử',{exact:true}).waitFor();await page.reload();await page.locator('tbody').getByText('Khách kiểm thử',{exact:true}).waitFor();pass('Khách thuê được giữ sau tải lại');

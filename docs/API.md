@@ -9,6 +9,10 @@ POST/PUT/DELETE phải có `Content-Type: application/json` và
 CORS cho website bên ngoài. Trường ngoài schema không được dùng để ghi đè
 ID, trạng thái duyệt hoặc mốc thời gian hệ thống.
 
+Proxy Vite trong `dev` và `preview` giữ nguyên Host bằng `changeOrigin: false`.
+Reverse proxy khi triển khai cũng cần giữ Host công khai của trình duyệt;
+API không tin các header `X-Forwarded-Host` do phía client gửi để bỏ qua kiểm tra nguồn.
+
 | Endpoint | Mục đích |
 |---|---|
 | `GET /api/health` | Readiness API |
